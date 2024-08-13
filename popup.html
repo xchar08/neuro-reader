@@ -1,21 +1,67 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blacklist Popup</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            padding: 10px;
+            font-family: 'Roboto', sans-serif;
+            padding: 20px;
+            text-align: center;
+            background: conic-gradient(from 180deg at center, #FF8C42, #1E90FF);
+            color: white;
         }
-        #blacklist {
-            width: 100%;
+        .container {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 40px;
+            max-width: 600px;
+            margin: 0 auto;
+            color: black;
+            position: relative;
+            overflow: hidden;
+        }
+        .container::before {
+            content: "";
+            position: absolute;
+            top: -8px; /* This defines the thickness of the gradient border */
+            left: -8px; /* This defines the thickness of the gradient border */
+            right: -8px; /* This defines the thickness of the gradient border */
+            bottom: -8px; /* This defines the thickness of the gradient border */
+            background: conic-gradient(from 180deg at center, #FF8C42, #1E90FF);
+            border-radius: 15px;
+            z-index: -1;
+            border: 8px solid transparent; /* Ensures the gradient has the correct thickness */
         }
     </style>
 </head>
 <body>
-    <h3>Blacklist Websites</h3>
-    <input type="text" id="blacklist" placeholder="Enter site (e.g., linkedin.com)" />
-    <button id="addButton">Add to Blacklist</button>
-    <ul id="blacklistItems"></ul>
+
+    <!-- Main Content -->
+    <div class="container">
+        <h2 style="color: #FF8C42; margin-bottom: 25px; font-weight: bold;">Blacklist Websites</h2>
+        
+        <!-- Input Section -->
+        <div style="margin-bottom: 20px;">
+            <input type="text" id="blacklist" placeholder="Enter site (e.g., linkedin.com)" 
+                   style="width: 70%; padding: 10px 15px; border: 2px solid #1E90FF; border-radius: 10px; font-size: 14px; background-color: rgba(255, 255, 255, 0.9); font-weight: 500;">
+        </div>
+
+        <!-- Button -->
+        <div style="margin-bottom: 30px;">
+            <button id="addButton" 
+                    style="padding: 10px 20px; background-color: white; color: black; border: 2px solid #1E90FF; border-radius: 10px; font-size: 14px; font-weight: bold;">
+                Add to Blacklist
+            </button>
+        </div>
+
+        <!-- Blacklist Items -->
+        <ul id="blacklistItems" style="list-style-type: none; padding-left: 0;">
+            <!-- Example List Item -->
+            <!-- <li style="background-color: #FF8C42; color: white; padding: 10px 20px; margin-bottom: 10px; border-radius: 10px;">Example.com</li> -->
+        </ul>
+    </div>
 
     <script src="popup.js"></script>
 </body>
