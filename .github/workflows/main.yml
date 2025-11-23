@@ -51,7 +51,7 @@ jobs:
 
       - name: Zip extension
         run: |
-          cd build               # or dist/, whatever folder your build script outputs
+          cd dist               
           zip -r ../neuro-reader-v${{ steps.version.outputs.version }}.zip .
           cd ..
           echo "ZIP_NAME=neuro-reader-v${{ steps.version.outputs.version }}.zip" >> $GITHUB_ENV
