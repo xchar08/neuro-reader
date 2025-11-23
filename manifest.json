@@ -20,7 +20,10 @@
       "run_at": "document_end"
     }
   ],
-  "permissions": [],
+  "permissions": [
+		"storage",
+		"activeTab"
+	],
   "host_permissions": [],
   "web_accessible_resources": [
     {
