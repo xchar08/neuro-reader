@@ -1,88 +1,144 @@
-// Function to add a site to the blacklist
-function addToBlacklist(site) {
-    if (!site) return;
-
-    chrome.storage.sync.get({blacklist: []}, function(data) {
-        let blacklist = data.blacklist;
-
-        // Avoid duplicates
-        if (!blacklist.includes(site)) {
-            blacklist.push(site);
-            chrome.storage.sync.set({blacklist: blacklist}, function() {
-                updateBlacklistUI(blacklist);
-                console.log("Added to blacklist:", site);
-            });
-        } else {
-            alert(`${site} is already blacklisted!`);
+// DOM Elements
+const elements = {
+    input: document.getElementById('blacklistInput'),
+    addBtn: document.getElementById('addButton'),
+    currentBtn: document.getElementById('blacklistCurrentBtn'),
+    list: document.getElementById('blacklistItems'),
+    emptyState: document.getElementById('emptyState'),
+    masterToggle: document.getElementById('masterToggle'),
+    toggleStatus: document.getElementById('toggleStatus'),
+    mainContent: document.getElementById('mainContent')
+  };
+  
+  // --- 1. Toggle Logic ---
+  
+  function updateToggleUI(isEnabled) {
+    elements.masterToggle.checked = isEnabled;
+    elements.toggleStatus.textContent = isEnabled ? "Enabled" : "Disabled";
+    
+    if (isEnabled) {
+      elements.mainContent.classList.remove('disabled-content');
+    } else {
+      elements.mainContent.classList.add('disabled-content');
+    }
+  }
+  
+  elements.masterToggle.addEventListener('change', (e) => {
+    const isEnabled = e.target.checked;
+    updateToggleUI(isEnabled);
+    
+    chrome.storage.sync.set({ extensionEnabled: isEnabled }, () => {
+      // Reload the current tab so the change takes effect immediately
+      chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+        if(tabs[0] && tabs[0].id) {
+          chrome.tabs.reload(tabs[0].id);
         }
+      });
     });
-}
-
-// Update the UI list
-function updateBlacklistUI(blacklist) {
-    const listElement = document.getElementById('blacklistItems');
-    listElement.innerHTML = '';
-    blacklist.forEach(function(site) {
+  });
+  
+  // --- 2. Blacklist Logic ---
+  
+  function addToBlacklist(site) {
+    if (!site) return;
+    
+    // Basic cleanup (remove http/https/www if pasted fully)
+    site = site.replace(/^(?:https?:\/\/)?(?:www\.)?/i, "").split('/')[0];
+  
+    chrome.storage.sync.get({ blacklist: [] }, (data) => {
+      const blacklist = data.blacklist;
+      if (!blacklist.includes(site)) {
+        const updatedList = [...blacklist, site];
+        chrome.storage.sync.set({ blacklist: updatedList }, () => {
+          renderList(updatedList);
+          elements.input.value = ''; // Clear input
+        });
+      } else {
+        // Visual feedback for duplicate
+        elements.input.style.borderColor = 'red';
+        setTimeout(() => elements.input.style.borderColor = '', 1000);
+      }
+    });
+  }
+  
+  function removeFromBlacklist(siteToRemove) {
+    chrome.storage.sync.get({ blacklist: [] }, (data) => {
+      const updatedList = data.blacklist.filter(site => site !== siteToRemove);
+      chrome.storage.sync.set({ blacklist: updatedList }, () => {
+        renderList(updatedList);
+        // Reload page so the bolding comes back if you are on that site
+        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+          if(tabs[0]) chrome.tabs.reload(tabs[0].id);
+        });
+      });
+    });
+  }
+  
+  // --- 3. UI Rendering ---
+  
+  function renderList(blacklist) {
+    elements.list.innerHTML = '';
+    
+    if (blacklist.length === 0) {
+      elements.emptyState.classList.remove('hidden');
+      elements.list.style.display = 'none';
+    } else {
+      elements.emptyState.classList.add('hidden');
+      elements.list.style.display = 'block';
+      
+      blacklist.forEach(site => {
         const li = document.createElement('li');
         
-        const span = document.createElement('span');
-        span.textContent = site;
+        const text = document.createElement('span');
+        text.textContent = site;
         
-        // Optional: Add a remove button for each item
         const removeBtn = document.createElement('button');
-        removeBtn.textContent = 'Remove';
-        removeBtn.style.marginLeft = '10px';
-        removeBtn.style.fontSize = '12px';
-        removeBtn.onclick = function() {
-            const updated = blacklist.filter(s => s !== site);
-            chrome.storage.sync.set({blacklist: updated}, () => updateBlacklistUI(updated));
-        };
-
-        li.appendChild(span);
+        removeBtn.className = 'remove-btn';
+        removeBtn.innerHTML = '✕'; 
+        removeBtn.title = 'Remove';
+        removeBtn.onclick = () => removeFromBlacklist(site);
+        
+        li.appendChild(text);
         li.appendChild(removeBtn);
-        listElement.appendChild(li);
-    });
-}
-
-// === Button 1: Manual entry ===
-document.getElementById('addButton').addEventListener('click', function() {
-    const site = document.getElementById('blacklistInput').value.trim();
-    if (site) {
-        addToBlacklist(site);
-        document.getElementById('blacklistInput').value = '';
+        elements.list.appendChild(li);
+      });
     }
-});
-
-// === Button 2: Blacklist current site (the magic one!) ===
-document.getElementById('blacklistCurrentBtn').addEventListener('click', function() {
-    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-        if (!tabs || tabs.length === 0) return;
-
-        const url = tabs[0].url;
-        if (!url || url.startsWith('chrome://') || url.startsWith('about:')) {
-            alert("Cannot blacklist this page (chrome:// or internal page)");
-            return;
-        }
-
-        try {
-            const hostname = new URL(url).hostname;        // e.g., youtube.com
-            const fullDomain = hostname.replace(/^www\./, ''); // remove www.
-
-            // You can choose what to block:
-            // Option A: just the domain (recommended)
-            addToBlacklist(fullDomain);
-
-            // Option B: block exact URL (uncomment if you prefer)
-            // addToBlacklist(url);
-
-        } catch (e) {
-            console.error("Invalid URL:", url);
-            alert("Could not parse the current URL.");
-        }
+  }
+  
+  // --- 4. Event Listeners ---
+  
+  elements.addBtn.addEventListener('click', () => {
+    addToBlacklist(elements.input.value.trim());
+  });
+  
+  elements.input.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') addToBlacklist(elements.input.value.trim());
+  });
+  
+  elements.currentBtn.addEventListener('click', () => {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (!tabs.length) return;
+      const url = tabs[0].url;
+      
+      if (!url || url.startsWith('chrome://') || url.startsWith('edge://')) {
+        alert("Cannot blacklist browser system pages.");
+        return;
+      }
+  
+      try {
+        const hostname = new URL(url).hostname;
+        addToBlacklist(hostname);
+        // Reload to stop bolding immediately
+        chrome.tabs.reload(tabs[0].id);
+      } catch (e) {
+        console.error("Invalid URL");
+      }
     });
-});
-
-// Load existing blacklist on popup open
-chrome.storage.sync.get({blacklist: []}, function(data) {
-    updateBlacklistUI(data.blacklist);
-});
+  });
+  
+  // --- 5. Initialization ---
+  chrome.storage.sync.get({ blacklist: [], extensionEnabled: true }, (data) => {
+    renderList(data.blacklist);
+    updateToggleUI(data.extensionEnabled);
+  });
+  

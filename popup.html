@@ -1,74 +1,57 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Blacklist Popup</title>
-    <style>
-        body {
-            font-family: 'Roboto', sans-serif;
-            padding: 20px;
-            text-align: center;
-            background:
-                linear-gradient(to bottom, white 0%, white 5%, transparent 20%, transparent 80%, white 95%, white 100%),
-                conic-gradient(from 180deg at center, #FF8C42, #1E90FF);
-            color: white;
-        }
-        .container {
-            background-color: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            padding: 40px;
-            max-width: 600px;
-            margin: 0 auto;
-            color: black;
-            position: relative;
-            overflow: hidden;
-        }
-        .container::before {
-            content: "";
-            position: absolute;
-            top: -8px; /* This defines the thickness of the gradient border */
-            left: -8px; /* This defines the thickness of the gradient border */
-            right: -8px; /* This defines the thickness of the gradient border */
-            bottom: -8px; /* This defines the thickness of the gradient border */
-            background: conic-gradient(from 180deg at center, #FF8C42, #1E90FF);
-            border-radius: 15px;
-            z-index: -1;
-            border: 8px solid transparent; /* Ensures the gradient has the correct thickness */
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeuroReader Settings</title>
+  <link rel="stylesheet" href="popup.css">
 </head>
 <body>
 
-    <!-- Main Content -->
-    <div class="container">
-        <h2 style="color: #FF8C42; margin-bottom: 25px; font-weight: bold;">Blacklist Websites</h2>
-        
-        <!-- Input Section -->
-        <div style="margin-bottom: 20px;">
-            <input type="text" id="blacklist" placeholder="Enter site (e.g., linkedin.com)" 
-                   style="width: 70%; padding: 10px 15px; border: 2px solid #1E90FF; border-radius: 10px; font-size: 14px; background-color: rgba(255, 255, 255, 0.9); font-weight: 500;">
-        </div>
+  <div class="container">
+    <header>
+      <h1>NeuroReader</h1>
+      <p class="subtitle">Focus & Accessibility Manager</p>
+      
+      <!-- Master Toggle Switch -->
+      <div class="toggle-container">
+        <label class="switch">
+          <input type="checkbox" id="masterToggle">
+          <span class="slider round"></span>
+        </label>
+        <span id="toggleStatus">Enabled</span>
+      </div>
+    </header>
 
-        <!-- Button -->
-        <div style="margin-bottom: 30px;">
-            <button id="addButton" 
-                    style="padding: 10px 20px; background-color: white; color: black; border: 2px solid #1E90FF; border-radius: 10px; font-size: 14px; font-weight: bold;">
-                Add to Blacklist
-            </button>
-        </div>
+    <main id="mainContent">
+      <!-- Current Site Action -->
+      <section class="current-site-section">
+        <button id="blacklistCurrentBtn" class="btn btn-primary">
+          <span class="icon">🚫</span> Blacklist Current Site
+        </button>
+      </section>
 
-				<button id="blacklistCurrentBtn" style="width:100%; background:#d32f2f; color:white; font-weight:bold;">
-        	Blacklist Current Site
-				</button>
+      <div class="divider"><span>OR</span></div>
 
-        <!-- Blacklist Items -->
-        <ul id="blacklistItems" style="list-style-type: none; padding-left: 0;">
-            <!-- Example List Item -->
-            <!-- <li style="background-color: #FF8C42; color: white; padding: 10px 20px; margin-bottom: 10px; border-radius: 10px;">Example.com</li> -->
+      <!-- Manual Entry -->
+      <section class="input-group">
+        <input type="text" id="blacklistInput" placeholder="e.g. facebook.com" autocomplete="off">
+        <button id="addButton" class="btn btn-secondary" title="Add to list">+</button>
+      </section>
+
+      <!-- List -->
+      <section class="list-section">
+        <h3>Blocked Sites</h3>
+        <ul id="blacklistItems" class="site-list">
+          <!-- Items injected here by JS -->
         </ul>
-    </div>
+        <div id="emptyState" class="empty-state hidden">
+          No websites blocked yet.
+        </div>
+      </section>
+    </main>
+  </div>
 
-    <script src="popup.js"></script>
+  <script src="popup.js"></script>
 </body>
 </html>

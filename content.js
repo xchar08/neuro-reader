@@ -1,6 +1,4 @@
-// bold if the word is larger than 3 characters
-// bold the first part of the word, and the last part
-// leaving middle part unbolded
+// 1. Helper to Bold Words
 function boldLetters(word) {
   if (word.length > 3) {
     let firstPart = word.slice(0, 2);
@@ -14,77 +12,77 @@ function boldLetters(word) {
   }
 }
 
-
+// 2. Process Text Nodes
 function processTextNodes(node) {
-  let words = node.textContent.split(/\b/);
+  // Split by word boundaries but keep the delimiters
+  let words = node.textContent.split(/(\s+)/); 
+  
   let modifiedWords = words.map(word => {
     if (/\w+/.test(word)) {
       return boldLetters(word);
     }
     return word;
   });
+
   let newHTML = modifiedWords.join("");
   let span = document.createElement("span");
   span.innerHTML = newHTML;
-  while (span.firstChild) {
-    node.parentNode.insertBefore(span.firstChild, node);
+  
+  // Replace text node with the new span
+  if (node.parentNode) {
+    node.parentNode.replaceChild(span, node);
   }
-  node.parentNode.removeChild(node);
 }
 
+// 3. Recursive DOM Walker
 function walkDOM(node) {
-  let child, next;
+  var child, next;
   switch (node.nodeType) {
-    case 1:  // Element
-      // Skip elements that could break the layout or are not text-related
-      const skipTags = ['SCRIPT', 'STYLE', 'IMG', 'INPUT', 'BUTTON', 'CANVAS'];
-      if (skipTags.includes(node.tagName)) return;
-    case 9:  // Document
+    case 1: // Element
+    case 9: // Document
     case 11: // Document fragment
       child = node.firstChild;
       while (child) {
         next = child.nextSibling;
-        walkDOM(child);
+        // Skip script, style, and existing spans to avoid re-bolding or breaking site
+        if (child.nodeName !== 'SCRIPT' && 
+            child.nodeName !== 'STYLE' && 
+            child.nodeName !== 'NOSCRIPT' &&
+            child.nodeName !== 'TEXTAREA' &&
+            child.nodeName !== 'INPUT') {
+          walkDOM(child);
+        }
         child = next;
       }
       break;
     case 3: // Text node
-      processTextNodes(node);
+      if (node.nodeValue.trim().length > 0) {
+        processTextNodes(node);
+      }
       break;
   }
 }
 
-function applyBoldToDocument() {
-  // Apply the bolding to the appropriate parts of each word
-  walkDOM(document.body);
-}
-
-// Check if the current site is blacklisted
-// wont touch it
-chrome.storage.sync.get({ blacklist: [] }, function (data) {
-  const blacklist = data.blacklist;
-  const currentHostname = window.location.hostname;
-
-  if (!isBlacklisted(blacklist, currentHostname)) {
-    console.log(`Bolding applied to non-blacklisted site: ${currentHostname}`);
-    applyBoldToDocument();
-  } else {
-    console.log(`Site is blacklisted, bolding not applied: ${currentHostname}`);
-  }
-});
-
-function getHostname(url) {
-  try {
-    return new URL(url).hostname;
-  } catch (e) {
-    return null;
-  }
-}
-
+// 4. Helper to check blacklist
 function isBlacklisted(blacklist, hostname) {
-
-  return blacklist.some(site => {
-		const blacklistedHost = getHostname(site);
-    return blacklistedHost === hostname;
-  });
+  if (!blacklist || !hostname) return false;
+  return blacklist.some(site => hostname.includes(site));
 }
+
+// --- MAIN EXECUTION ---
+chrome.storage.sync.get({ blacklist: [], extensionEnabled: true }, function (data) {
+  // Check 1: Master Switch
+  if (!data.extensionEnabled) {
+    return; 
+  }
+
+  // Check 2: Blacklist
+  const currentHostname = window.location.hostname;
+  if (isBlacklisted(data.blacklist, currentHostname)) {
+    console.log("NeuroReader: Site is blacklisted.");
+    return;
+  }
+
+  // If checks pass, run the bolding
+  walkDOM(document.body);
+});
