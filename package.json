@@ -1,0 +1,38 @@
+{
+  "name": "neuro-reader",
+  "version": "1.0.0",
+  "description": "Welcome to **NeuroReader** - an innovative browser extension designed to enhance reading experiences for individuals with dyslexia and autism. NeuroReader aims to make text more accessible and easier to read through customizable features that cater to various reading needs.",
+  "main": "content.js",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "echo \"Dev mode — just reload the extension in chrome://extensions\"",
+    "clean": "rm -rf dist && mkdir dist",
+    "copy": "cp -r manifest.json content.js popup.* icons/ LICENSE README.md dist/",
+    "minify": "terser dist/content.js -c -m -o dist/content.js && terser dist/popup.js -c -m -o dist/popup.js",
+    "build": "npm run clean && npm run copy && npm run minify",
+    "zip": "cd dist && bestzip ../neuro-reader-v$(node -p \"require('./package.json').version\").zip *",
+    "release": "npm run build && npm run zip"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xchar08/neuro-reader.git"
+  },
+  "keywords": [
+    "chrome-extension",
+    "dyslexia",
+    "autism",
+    "accessibility",
+    "reading-aid",
+    "browser-extension"
+  ],
+  "author": "xchar08, Betim-Hodza",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/xchar08/neuro-reader/issues"
+  },
+  "homepage": "https://github.com/xchar08/neuro-reader#readme",
+  "devDependencies": {
+    "bestzip": "^2.2.1",
+    "terser": "^5.31.0"
+  }
+}

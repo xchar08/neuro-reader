@@ -1,25 +1,35 @@
 {
-    "manifest_version": 3,
-    "name": "Neuro Reader",
-    "version": "1.1",
-    "description": "Bold the first and last few letters of every word on a page for ease of reading.",
-    "permissions": [
-      "activeTab",
-      "storage"
-    ],
-    "action": {
-      "default_popup": "popup.html",
-      "default_icon": {
-        "16": "icons/icon16.png",
-        "48": "icons/icon48.png",
-        "128": "icons/icon128.png"
-      }
-    },
-    "content_scripts": [
-      {
-        "matches": ["<all_urls>"],
-        "js": ["content.js"]
-      }
-    ]
-  }
-  
+  "manifest_version": 3,
+  "name": "NeuroReader",
+  "version": "1.0.0",
+  "description": "Enhances reading for people with dyslexia and autism with customizable accessibility features.",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "NeuroReader"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": [],
+      "run_at": "document_end"
+    }
+  ],
+  "permissions": [
+		"storage",
+		"activeTab",
+		"tabs"
+	],
+  "host_permissions": [],
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

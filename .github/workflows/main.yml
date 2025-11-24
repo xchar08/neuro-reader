@@ -1,0 +1,69 @@
+name: Build and Release Neuro Reader Chrome Extension
+
+on:
+  push:
+    tags:
+      - "v*.*.*"           # Triggers only when you push a tag like v1.2.3
+    branches:
+      - main
+      - master
+
+permissions:
+  contents: write         # Needed to create releases and upload assets
+  packages: read
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0     
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'   
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build extension
+        run: npm run build
+
+    
+      - name: Semantic Release
+        if: github.ref_type == 'branch' && (github.ref_name == 'main' || github.ref_name == 'master')
+        uses: cycjimmy/semantic-release-action@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get version from package.json (or tag)
+        id: version
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          else
+            echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Zip extension
+        run: |
+          cd dist               
+          zip -r ../neuro-reader-v${{ steps.version.outputs.version }}.zip .
+          cd ..
+          echo "ZIP_NAME=neuro-reader-v${{ steps.version.outputs.version }}.zip" >> $GITHUB_ENV
+
+      - name: Create GitHub Release (only on tag or when semantic-release didn't create one)
+        if: github.ref_type == 'tag' || env.SEMANTIC_RELEASE_CREATED != 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Neuro Reader v${{ steps.version.outputs.version }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            ${{ env.ZIP_NAME }}

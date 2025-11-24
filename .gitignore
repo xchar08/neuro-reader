@@ -1,0 +1,29 @@
+# Node / npm
+node_modules/
+npm-debug.log
+yarn-debug.log*
+yarn-error.log*
+
+# Build output
+/dist
+/*.zip
+neuro-reader-*.zip
+
+# OS / Editor junk
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.bak
+*.swp
+*~
+
+# IDEs
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sublime-*
+
